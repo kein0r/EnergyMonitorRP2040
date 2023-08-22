@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <SPI.h>
+#include <RH_RF69.h>
 
 /*
  * Information regarding automatic meter reading is mostly taken from the following transmitTimeOffset
@@ -36,7 +37,30 @@ Interval Data Message (IDM Message)
  * ERT type             0x17    (1 byte, last 4 bits determine type)
 */
 
+#define RFM69_FREQ 915.0
+#define RFM69_CS   16
+#define RFM69_INT  21
+#define RFM69_RST  17
+#define LED        LED_BUILTIN
+
+// Singleton instance of the radio driver
+RH_RF69 rf69(RFM69_CS, RFM69_INT);
+
 void setup() {
+  pinMode(LED, OUTPUT);     
+  pinMode(RFM69_RST, OUTPUT);
+  digitalWrite(RFM69_RST, LOW);
+  if (!rf69.init()) {
+    Serial.println("RFM69 radio init failed");
+    while (1);
+  }
+  Serial.println("RFM69 radio init OK!");
+  
+  // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM (for low power module)
+  // No encryption
+  if (!rf69.setFrequency(RFM69_FREQ)) {
+    Serial.println("setFrequency failed");
+  }
 
 }
 
